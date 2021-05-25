@@ -13,17 +13,24 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using API.Entities;
 using API.Data;
+using API.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+using API.Interfaces;
+using API.Services;
 
 namespace API
 {
     public class Startup
     {
-        private IConfiguration  config;
+        private IConfiguration  _config;
 
         public Startup(IConfiguration config)
         {
-            config = config;
+            _config = config;
         }
 
 
@@ -32,13 +39,15 @@ namespace API
         {
             //string ConnectionString = config.GetConnectionString("DefaultConnection");
 
-
-            services.AddDbContext<DataContext>(options =>
             
-                options.UseSqlite("Data source=datingapp.db")
-            );
+            
+          
+
+            services.AddApplicationServices(_config);
             services.AddControllers();
-            services.AddCors();
+            services.AddCors(); 
+            services.AddIdentityServices(_config);
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
@@ -61,6 +70,7 @@ namespace API
 
             app.UseCors(policy=> policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"));
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
